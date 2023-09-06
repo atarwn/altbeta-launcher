@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter.messagebox import showerror
 import os
 
-version = "0.2"
+version = "0.3"
 libraries = "client/asm-all-4.1.jar;client/b1.7.3.jar;client/jinput-2.0.5.jar;client/jopt-simple-4.5.jar;client/jutils-1.0.0.jar;client/launchwrapper-1.5.jar;client/lwjgl_util-2.9.0.jar;client/lwjgl-2.9.0.jar;"
 
 def start():
@@ -27,7 +27,7 @@ def start():
         session = s.readline()
         session = session[:-1]
         jrebin = s.readline()
-        o.close()
+        s.close()
         print(nickname.get(), xms, xmx, session, jrebin)
         minecraftlauncher()
 
@@ -49,8 +49,9 @@ def defsettings():
     global settings
     settings = Tk()
     settings.title("Настройки")
-    settings.geometry("250x125")
+    settings.geometry("275x120")
     settings.resizable(False, False)
+    root.iconbitmap(default="favicon.ico")
 
     global Sxms
     global Sxmx
@@ -61,10 +62,10 @@ def defsettings():
     Sxmx = Entry(settings)
     Ssession = Entry(settings)
     Sjrebin = Entry(settings)
-    xmsl = Label(settings, text="xms:")
-    xmxl = Label(settings, text="xmx:")
+    xmsl = Label(settings, text="Мин. кол-во памяти:")
+    xmxl = Label(settings, text="Макс. кол-во памяти:")
     sessionl = Label(settings, text="Сессия:")
-    jrebinl = Label(settings, text="Путь jre до папки bin:")
+    jrebinl = Label(settings, text="Путь до папки с javaw.exe:")
 
     btn_accept = Button(settings, text="Принять", command=button_accept)
     btn_reject = Button(settings, text="Отклонить", command=button_reject)
@@ -112,13 +113,14 @@ def defsettings():
 def definfo():
     info = Tk()
     info.title("Информация")
-    info.geometry("400x300")
+    info.geometry("400x150")
     info.resizable(False, False)
+    root.iconbitmap(default="favicon.ico")
     
-    info1 = Label(info, text="К нам можно подключится по RadminVPN")
-    radmin1 = Label(info, text="Имя сети - AltBeta")
-    radmin2 = Label(info, text="Пароль сети - AltBeta")
-    infoip = Label(info, text="IP сервера (на момент 08.08.23) - 26.185.114.158")
+    info1 = Label(info, text="По всем вопросам в дискорд к __kakao")
+    radmin1 = Label(info, text="Наш дискорд сервер:")
+    radmin2 = Label(info, text="discord.gg/p2qATAsGMp")
+    infoip = Label(info, text="IP сервера (на момент 02.09.23) - недоступен")
     warning = Label(info, foreground="#FF0000", text="Не верьте третьим лицам выдающим себя за владельцев альтбеты!")
 
     info1.pack()
@@ -126,8 +128,14 @@ def definfo():
     radmin2.pack()
     infoip.pack()
     warning.pack()
+
+def create_settings_file():
+    s = open("settings.txt", "w")
+    s.write("512"+"\n"+"1024"+"\n"+"12345"+"\n"+"C:\ProgramData\Oracle\Java\javapath")
+    s.close
     
 #main code
+
 root = Tk()
 root.title("ABLauncher.py "+version)
 root.geometry("400x300")
@@ -136,7 +144,7 @@ root.iconbitmap(default="favicon.ico")
 
 canvas = Canvas(root, bg = 'black', height = 245, width = 395)
 shot = PhotoImage(file='shot.png')
-shotCan = canvas.create_image(100,150, image = shot)
+shotPlace = canvas.create_image(2, 2, anchor=NW, image = shot)
 
 txtlogo = Label(root, text="ABLauncher.py "+version)
 nickname = Entry(root)
@@ -144,16 +152,29 @@ start = Button(root, text="Играть!", command=start)
 btnsettings = Button(root, text="Настройки", command=defsettings)
 btninfo = Button(root, text="Информация", command=definfo)
 
+try:
+    s = open("settings.txt")
+    ioerr = True
+    s.close
+except IOError:
+    ioerr = False
+
+if ioerr:
+    pass
+else:
+    create_settings_file()
+    
 canvas.place(x=0, y=0)
 txtlogo.place(x=10, y=250)
-nickname.place(x=10, y=270)
-start.place(x=135, y=270)
-btnsettings.place(x=189, y=270)
-btninfo.place(x=261, y=270)
+nickname.place(x=10, y=270, height=22)
+start.place(x=135, y=270, height=22)
+btnsettings.place(x=189, y=270, height=22)
+btninfo.place(x=261, y=270, height=22)
 
 try:
-    o = open("lastlogin.txt")
+    s = open("lastlogin.txt")
     ioerr = True
+    s.close
 except IOError:
     ioerr = False
 if ioerr:
@@ -163,9 +184,8 @@ if ioerr:
     else:
         nickname.delete(0, END)
         nickname.insert(0, tempNN)
-        o.close()
+        s.close()
 else:
     pass
 
 root.mainloop()
-
