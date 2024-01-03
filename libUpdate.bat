@@ -1,6 +1,7 @@
 @echo off
-python -m pip install tkinter
+python -m pip install tk
 python -m pip install requests
-pip install wget
+python -m pip install wget
+cls
 echo All done?
 pause
