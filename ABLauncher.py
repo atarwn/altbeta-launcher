@@ -12,10 +12,16 @@ import webbrowser
 
 name = "ABLauncher"
 version = "0.4"
-release = "pr-3"
-build2 = '5'
+release = "pr4"
+build2 = '7'
 libraries = "client/minecraft.jar;client/jinput.jar;client/lwjgl_util.jar;client/lwjgl.jar;"
 special_chars = ['@', "'", '"', '№', '#', '$', ';', '%', '^', ':', '&', '?', '*', '(', ')', '{', '}', '[', ']', '|', '/', ',', '`', '~', '\\', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я', 'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', ' ', ' ']
+
+if not os.path.exists("res"):
+    os.mkdir("res")
+elif not os.path.exists("res/config"):
+    os.mkdir("res/config")
+    
 
 def start():
     if nickname.get() == "" or nickname.get() == " " in nickname.get():
@@ -52,9 +58,12 @@ def minecraftlauncher():
     ml.write('@echo off'+"\n"+'set APPDATA=%CD%'+"\n"+'"'+jrebin+'\javaw"'+' -Xms'+xms+'m -Xmx'+xmx+'m -Djava.library.path="client/natives" -cp "'+libraries+'" net.minecraft.client.Minecraft "'+nickname.get()+'" "'+session+'"')
     ml.close()
     print('start')
+    ml = open("hmcl.vbs", 'w')
+    ml.write('Set WshShell = CreateObject("WScript.Shell")'+'\n'+'WshShell.Run chr(34) & "minecraftlauncher.bat" & Chr(34), 0')
+    ml.close()
     os.system('hmcl.vbs')
     
-def Install_Java():
+def Update_Client():
     try:
         os.makedirs("client/natives", exist_ok=True)
     except OSError:
@@ -74,6 +83,34 @@ def Install_Java():
             zip_rm.extractall('.minecraft/resources')
         os. remove("resources_music.zip")
         showinfo(title="Инфо", message="Загрузка завершена")
+
+def Install_Java():
+    try:
+        o = open("res/config/settings.txt")
+        ioerr = True
+    except IOError:
+        ioerr = False
+    if ioerr:
+        tempXms = o.readline()
+        tempXmx = o.readline()
+        tempSess = o.readline()
+        tempJrebin = o.readline()
+        if tempXms.isspace() and tempXmx.isspace() and tempSess.isspace():
+            print("True")
+        else:
+            tempXms = tempXms[:-1]
+            tempXmx = tempXmx[:-1]
+            tempSess = tempSess[:-1]
+            tempJrebin = str(os.path.dirname(os.path.abspath(__file__)))+"\\res\\local-resources\\Java\\bin"
+            o.close()
+            o = open("res/config/settings.txt", "w")
+            o.write(tempXms+"\n"+tempXmx+"\n"+tempSess+"\n"+tempJrebin)
+            print(tempXms+"\n"+tempXmx+"\n"+tempSess+"\n"+tempJrebin)
+            o.close()
+    else:
+        pass
+    showerror(title="Упс!", message="Данная функция пока недоступна, ждите обновления!")
+
         
 def Open_Support():
     webbrowser.open("https://atarwn.github.io/abl/")
@@ -217,15 +254,17 @@ def definfo():
     info1 = Label(info, text="По всем вопросам на наш Discord сервер:")
     radmin1 = Label(info, text="discord.gg/p2qATAsGMp")
     # warning = Label(info, foreground="#FF0000", text="Не верьте третьим лицам выдающим себя за владельцев AltBeta!")    # возможно будет удалено
-    installjava = Button(info, text='Обновить клиент', command=Install_Java, cursor="hand2")
+    updateclient = Button(info, text='Обновить клиент Minecraft', command=Update_Client, cursor="hand2")
+    installjava = Button(info, text='Установить рекомендуемую Java', command=Install_Java, cursor="hand2")
     opensupport = Button(info, text='Открыть справку', command=Open_Support, cursor="hand2")
     ver = Label(info, text="Версия: "+version+" "+release)
-    cr = Label(info, text="\n\n\n\n© 2024 __kakao & atarwn")
+    cr = Label(info, text="\n\n© 2024 __kakao & atarwn")
 
     ver.pack()
     info1.pack()
     radmin1.pack()
     # warning.pack()    # возможно будет удалено
+    updateclient.pack()
     installjava.pack()
     opensupport.pack()
     cr.pack()
@@ -255,7 +294,7 @@ def check_update():
 def main_code():
     def close_all_windows():
         print(root.winfo_children)
-        
+    
     root = Tk()
     root.title(name+" "+version+" "+release)
     root.geometry("400x300")
@@ -265,16 +304,16 @@ def main_code():
     global build1
     if os.path.exists(wget.download('https://atarwn.github.io/abl/newupdate.xml', 'temp_bmV3dXBkYXRlLnhtbA.xml')):
         os.remove('temp_bmV3dXBkYXRlLnhtbA.xml')
-        if os.path.exists('newupdate.xml'):
-            os.remove('newupdate.xml')
+        if os.path.exists('res/local-resources/newupdate.xml'):
+            os.remove('res/local-resources/newupdate.xml')
         else:
             pass
-        wget.download('https://atarwn.github.io/abl/newupdate.xml')
-        uxml1 = ET.parse('newupdate.xml')
+        wget.download('https://atarwn.github.io/abl/newupdate.xml', 'res/local-resources/newupdate.xml')
+        uxml1 = ET.parse('res/local-resources/newupdate.xml')
         root1 = uxml1.getroot()
         build1 = root1.find('build').text
     else:
-        uxml1 = ET.parse('newupdate.xml')
+        uxml1 = ET.parse('res/local-resources/newupdate.xml')
         root1 = uxml1.getroot()
         build1 = root1.find('build').text
         showwarning(title='Ой!', message='Указанный файл отсутствует на сервере, игнорируем...')
@@ -298,9 +337,6 @@ def main_code():
         check_update()
         
 
-    
-    #root.bind("<Destroy>", close_all_windows)
-
     canvas = Canvas(root, bg = 'white', height = 245, width = 395)
     buildName1 = root1.find('buildname').text
     date1 = root1.find('date').text
@@ -310,13 +346,18 @@ def main_code():
     print('Name: ', buildName1)
     print('Date:', date1)
     print('Release Notes:', relnotes1) #Max symbols: 54; Max lines: 8 
+
+    canvas_bg = PhotoImage(file="res/local-resources/shot.png")
+    canvas.create_image(1, 1, anchor=NW, image=canvas_bg)
     
-    canvas.create_text(5, 5, text='Последнее обновление '+buildName1, fill="#000000", anchor=NW, font="Arial 14")
-    canvas.create_text(5, 30, text=date1, fill="#000000", anchor=NW, font="Arial 10")
-    canvas.create_text(5, 45, text='Изменения:', fill="#000000", anchor=NW, font="Arial 10")
-    canvas.create_text(5, 45, text=relnotes1, fill="#000000", anchor=NW, font="Arial 10")
-    canvas.create_text(5, 210, text="Следите за новостями на нашем дискорд сервере", fill="#FF0000", anchor=NW, font="Arial 10")
-    canvas.create_text(5, 229, text="https://clck.ru/36RZvk", fill="#000000", anchor=NW, font="Arial 10")
+    canvas.create_text(5, 5, text='Обновление '+buildName1, fill="#FFFFFF", anchor=NW, font="Arial 14")
+    canvas.create_text(5, 30, text=date1, fill="#FFFFFF", anchor=NW, font="Arial 10")
+    canvas.create_text(5, 45, text='Изменения:', fill="#FFFFFF", anchor=NW, font="Arial 10")
+    canvas.create_text(5, 45, text=relnotes1, fill="#FFFFFF", anchor=NW, font="Arial 10")
+    canvas.create_text(5, 210, text="Следите за новостями на нашем дискорд сервере", fill="#FF00FF", anchor=NW, font="Arial 10")
+    
+    canvas.create_text(5, 229, text="https://clck.ru/36RZvk", fill="#00FFFF", anchor=NW, font="Arial 10")
+
 
     global nickname
     txtlogo = Label(root, text=name)
@@ -362,14 +403,168 @@ def main_code():
         pass
 
     root.mainloop()
-main_code()
 
-#                    #
-#      Threading     #
-#                    #
-#t1 = thr.Thread(target=main_code, name="LauncherStart")
-#t2 = thr.Thread(target=lus, name="LauncherUpdaterStart")
-#t1.start()
-#t2.start()
-#t1.join()
-#t2.join()
+#                         #
+#   Resources not found   #
+#                         #
+def resources_out_code():
+    def close_all_windows():
+        print(root.winfo_children)
+    
+    root = Tk()
+    root.title(name+" "+version+" "+release)
+    root.geometry("400x300")
+    root.resizable(False, False)        
+    showerror(title="Ошибка!", message="Отсутствует папка или некоторые ресурсы!\nНормальный запуск лаунчера невозможен")
+    
+    canvas = Canvas(root, bg = 'white', height = 90, width = 395)
+    
+    canvas.create_text(5, 5, text='Отсутствует папка или некоторые ресурсы!', fill="#FF0000", anchor=NW, font="Arial 14")
+    canvas.create_text(5, 30, text='Нормальный запуск лаунчера невозможен', fill="#FF0000", anchor=NW, font="Arial 10")
+    canvas.create_text(5, 50, text="При возникновении проблем обратитесь на сервер поддержки", fill="#FF0000", anchor=NW, font="Arial 10")
+    
+    canvas.create_text(5, 70, text="https://clck.ru/36RZvk", fill="#000000", anchor=NW, font="Arial 10")
+
+
+    global nickname
+    txtlogo = Label(root, text=name)
+    nickname = Entry(root)
+    startb = Button(root, text="Играть!", command=start, cursor="hand2")
+    #btnsettings = Button(root, text="Настройки", command=defsettings, cursor="hand2")
+    #btninfo = Button(root, text="Информация", command=definfo, cursor="hand2")
+
+    try:
+        s = open("res/config/settings.txt")
+        ioerr = True
+        s.close
+    except IOError:
+        ioerr = False
+
+    if ioerr:
+        pass
+    else:
+        create_settings_file()
+            
+    canvas.place(x=0, y=158)
+
+
+    #~~~ Settings ~~~#
+    def button_accept():
+        s = open("res/config/settings.txt", 'w')
+        s.write(Sxms.get()+"\n"+Sxmx.get()+"\n"+Ssession.get()+"\n"+Sjrebin.get())
+        s.close()
+        s = open("res/config/autoupdate.txt", 'w')
+        print(au_enabled.get())
+        s.write(str(au_enabled.get()))
+        s.close()
+
+    global Sxms
+    global Sxmx
+    global Ssession
+    global Sjrebin
+
+    Sxms = Entry(root)
+    Sxmx = Entry(root)
+    Ssession = Entry(root)
+    Sjrebin = Entry(root)
+    xmsl = Label(root, text="Мин. кол-во памяти:")
+    xmxl = Label(root, text="Макс. кол-во памяти:")
+    sessionl = Label(root, text="Сессия (не больно важно):")
+    jrebinl = Label(root, text="Путь до папки с javaw.exe:")
+
+    au_enabled = BooleanVar()
+
+    btn_accept = Button(root, text="Применить", command=button_accept, cursor="hand2")
+
+    Sxms.grid(column=1, row=0)
+    xmsl.grid(column=0, row=0)
+    Sxmx.grid(column=1, row=1)
+    xmxl.grid(column=0, row=1)
+    Ssession.grid(column=1, row=2)
+    sessionl.grid(column=0, row=2)
+    jrebinl.grid(column=0, row=3)  
+    Sjrebin.grid(column=1, row=3)
+    
+    btn_accept.grid(column=0, row=6)
+
+    try:
+        au = open("res/config/autoupdate.txt")
+        ioerr = True
+        au.close
+    except IOError:
+        ioerr = False
+    if ioerr:
+        au = open("res/config/autoupdate.txt")
+        if au.read() == "True":
+            au_enabled.set(True)
+        else:
+            au_enabled.set(False)
+    else:
+        create_config_au_file()
+        check_update()
+        
+    autoupdatech = ttk.Checkbutton(root, text="Включить", variable=au_enabled)
+    autoupdatel = Label(root, text="Автообновление:")
+    autoupdatel.grid(column=0, row=4)
+    autoupdatech.grid(column=1, row=4)
+
+
+    try:
+        o = open("res/config/settings.txt")
+        ioerr = True
+    except IOError:
+        ioerr = False
+    if ioerr:
+        tempXms = o.readline()
+        tempXmx = o.readline()
+        tempSess = o.readline()
+        tempJrebin = o.readline()
+        if tempXms.isspace() and tempXmx.isspace() and tempSess.isspace():
+            print("True")
+        else:
+            Sxms.delete(0, END)
+            Sxmx.delete(0, END)
+            Ssession.delete(0, END)
+            tempXms = tempXms[:-1]
+            tempXmx = tempXmx[:-1]
+            tempSess = tempSess[:-1]
+            Sxms.insert(0, tempXms)
+            Sxmx.insert(0, tempXmx)
+            Ssession.insert(0, tempSess)
+            Sjrebin.insert(0, tempJrebin)
+            o.close()
+    else:
+        pass
+    #~~~ Settings ~~~#
+    
+    txtlogo.place(x=10, y=250)
+    nickname.place(x=10, y=270, height=22)
+    startb.place(x=140, y=270, height=22)
+
+    try:
+        s = open("res/config/lastlogin.txt")
+        ioerr = True
+        s.close
+    except IOError:
+        ioerr = False
+    if ioerr:
+        tempNN = s.readline()
+        if tempNN.isspace():
+            pass
+        else:
+            nickname.delete(0, END)
+            nickname.insert(0, tempNN)
+            s.close()
+    else:
+        pass
+
+    root.mainloop()
+#   Resources not found   #
+
+
+if not os.path.exists("res/local-resources") or not os.path.exists("res/local-resources/favicon.ico") or not os.path.exists("res/local-resources/shot.png"):
+    #if not os.path.exists("res/local-resources"):
+    #    os.mkdir("res/local-resources")
+    resources_out_code()
+else:
+    main_code()
